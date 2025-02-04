@@ -36,11 +36,14 @@ services:
       - AIRFLOW__CELERY__RESULT_BACKEND=db+mysql+pymysql://airflow:airflow@mysql/airflow
       # This tells the log server to bind to all interfaces.
       - AIRFLOW__WEBSERVER__WORKER_LOG_SERVER_ADDRESS=0.0.0.0
+      - AIRFLOW__WEBSERVER__SECRET_KEY=my_super_secret_key
     ports:
       - "8080:8080"
       # Expose the log server port so the UI can fetch logs
       - "8793:8793"
     command: webserver
+    volumes:
+      - logs-volume:/usr/local/airflow/logs
 
   # Airflow Scheduler
   airflow-scheduler:
@@ -54,7 +57,10 @@ services:
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=mysql+pymysql://airflow:airflow@mysql/airflow
       - AIRFLOW__CELERY__BROKER_URL=redis://redis:6379/0
       - AIRFLOW__CELERY__RESULT_BACKEND=db+mysql+pymysql://airflow:airflow@mysql/airflow
+      - AIRFLOW__WEBSERVER__SECRET_KEY=my_super_secret_key
     command: scheduler
+    volumes:
+      - logs-volume:/usr/local/airflow/logs
 
   # Airflow Celery Worker
   airflow-worker:
@@ -68,7 +74,11 @@ services:
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=mysql+pymysql://airflow:airflow@mysql/airflow
       - AIRFLOW__CELERY__BROKER_URL=redis://redis:6379/0
       - AIRFLOW__CELERY__RESULT_BACKEND=db+mysql+pymysql://airflow:airflow@mysql/airflow
+      - AIRFLOW__WEBSERVER__SECRET_KEY=my_super_secret_key
     command: celery worker
+    volumes:
+      - logs-volume:/usr/local/airflow/logs
 
 volumes:
   mysql_data:
+  logs-volume:

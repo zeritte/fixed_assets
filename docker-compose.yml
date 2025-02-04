@@ -1,0 +1,74 @@
+version: '3'
+services:
+  # MySQL service for Airflow metadata
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: airflow
+      MYSQL_DATABASE: airflow
+      MYSQL_USER: airflow
+      MYSQL_PASSWORD: airflow
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # Redis service for Celery broker
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+
+  # Airflow Webserver
+  airflow-webserver:
+    build: .
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      # Change to LocalExecutor if you want to run everything in a single container:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      # Database connection string using PyMySQL driver:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=mysql+pymysql://airflow:airflow@mysql/airflow
+      # Celery settings:
+      - AIRFLOW__CELERY__BROKER_URL=redis://redis:6379/0
+      - AIRFLOW__CELERY__RESULT_BACKEND=db+mysql+pymysql://airflow:airflow@mysql/airflow
+      # This tells the log server to bind to all interfaces.
+      - AIRFLOW__WEBSERVER__WORKER_LOG_SERVER_ADDRESS=0.0.0.0
+    ports:
+      - "8080:8080"
+      # Expose the log server port so the UI can fetch logs
+      - "8793:8793"
+    command: webserver
+
+  # Airflow Scheduler
+  airflow-scheduler:
+    build: .
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=mysql+pymysql://airflow:airflow@mysql/airflow
+      - AIRFLOW__CELERY__BROKER_URL=redis://redis:6379/0
+      - AIRFLOW__CELERY__RESULT_BACKEND=db+mysql+pymysql://airflow:airflow@mysql/airflow
+    command: scheduler
+
+  # Airflow Celery Worker
+  airflow-worker:
+    build: .
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=mysql+pymysql://airflow:airflow@mysql/airflow
+      - AIRFLOW__CELERY__BROKER_URL=redis://redis:6379/0
+      - AIRFLOW__CELERY__RESULT_BACKEND=db+mysql+pymysql://airflow:airflow@mysql/airflow
+    command: celery worker
+
+volumes:
+  mysql_data:

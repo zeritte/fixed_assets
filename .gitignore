@@ -1,0 +1,13 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Poetry virtual environments (if created locally)
+.env
+.venv/
+env/
+venv/
+
+# Docker files (if you want to ignore build artifacts)
+*.log

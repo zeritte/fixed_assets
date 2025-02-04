@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "fixed-assets"
+version = "0.1.0"
+description = ":moneybag:"
+authors = ["z"]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+apache-airflow = "2.9.1"
+pymysql = "^1.0.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
